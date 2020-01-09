@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="launcher_background">#171B37</color>
+    <color name="textTitleColor">#FFFFFF</color>
+    <color name="textSubTitleColor">#868E96</color>
+    <color name="iconColor">#FB2B2C</color>
+</resources>

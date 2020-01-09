@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Application
+    x:Class="Jux.App"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!--  Colors  -->
+            <Color x:Key="Background">#10152E</Color>
+            <Color x:Key="ControlBackground">#161B36</Color>
+            <Color x:Key="Title">#FFFFFF</Color>
+            <Color x:Key="SubTitle">#868E96</Color>
+            <Color x:Key="Icon">#FB2B2C</Color>
+
+            <!--  ***Fonts***  -->
+            <!--  Label  -->
+            <Style x:Key="NormalLabel" TargetType="Label">
+                <Setter Property="FontFamily">
+                    <Setter.Value>
+                        <OnPlatform x:TypeArguments="x:String">
+                            <On Platform="iOS">AdventPro-Regular</On>
+                            <On Platform="Android">Fonts/AdventPro-Regular.ttf#Regular</On>
+                        </OnPlatform>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="LightLabel" TargetType="Label">
+                <Setter Property="FontFamily">
+                    <Setter.Value>
+                        <OnPlatform x:TypeArguments="x:String">
+                            <On Platform="iOS">AdventPro-Light</On>
+                            <On Platform="Android">Fonts/AdventPro-Light.ttf#Light</On>
+                        </OnPlatform>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="BoldLabel" TargetType="Label">
+                <Setter Property="FontFamily">
+                    <Setter.Value>
+                        <OnPlatform x:TypeArguments="x:String">
+                            <On Platform="iOS">AdventPro-Bold</On>
+                            <On Platform="Android">Fonts/AdventPro-Bold.ttf#Bold</On>
+                        </OnPlatform>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="ExtraLightLabel" TargetType="Label">
+                <Setter Property="FontFamily">
+                    <Setter.Value>
+                        <OnPlatform x:TypeArguments="x:String">
+                            <On Platform="iOS">AdventPro-Bold</On>
+                            <On Platform="Android">Fonts/AdventPro-Extralight.ttf#ExtraLight</On>
+                        </OnPlatform>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="ThinLabel" TargetType="Label">
+                <Setter Property="FontFamily">
+                    <Setter.Value>
+                        <OnPlatform x:TypeArguments="x:String">
+                            <On Platform="iOS">AdventPro-Bold</On>
+                            <On Platform="Android">Fonts/AdventPro-Thin.ttf#Thin</On>
+                        </OnPlatform>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="SemiBoldLabel" TargetType="Label">
+                <Setter Property="FontFamily">
+                    <Setter.Value>
+                        <OnPlatform x:TypeArguments="x:String">
+                            <On Platform="iOS">AdventPro-Semibold</On>
+                            <On Platform="Android">Fonts/AdventPro-Semibold.ttf#SemiBold</On>
+                        </OnPlatform>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!--  Images  -->
+            <x:String x:Key="Checked">Checked4x</x:String>
+            <x:String x:Key="UnChecked">Unchecked4x</x:String>
+            <x:String x:Key="ArtistImage">Artist</x:String>
+            <x:String x:Key="AlbumImage">Album</x:String>
+            <x:String x:Key="SongImage">Song</x:String>
+            <x:String x:Key="LinkImage">Link</x:String>
+            <x:String x:Key="SettingsImage">Settings</x:String>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

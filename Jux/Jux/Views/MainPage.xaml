@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Jux.MainPage"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:XLabs.Forms.Controls;assembly=XLabs.Forms"
+    xmlns:customcontrols="clr-namespace:Jux.CustomControls"
+    xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid BackgroundColor="{StaticResource Background}">
+        <Grid x:Name="SplashGrid" BackgroundColor="{StaticResource ControlBackground}">
+            <Image
+                x:Name="Logo"
+                HorizontalOptions="Center"
+                Source="Logo"
+                VerticalOptions="Center" />
+        </Grid>
+        <StackLayout x:Name="SearchStack" VerticalOptions="Start">
+            <Frame
+                x:Name="BackgroundFrame"
+                Padding="0,0,0,5"
+                BackgroundColor="{StaticResource Icon}"
+                CornerRadius="5">
+                <Grid>
+                    <StackLayout BackgroundColor="{StaticResource ControlBackground}">
+                        <StackLayout Orientation="Horizontal">
+                            <controls:ExtendedEntry
+                                x:Name="TxtSearch"
+                                HasBorder="True"
+                                HorizontalOptions="FillAndExpand"
+                                Placeholder="Search..."
+                                PlaceholderTextColor="{StaticResource SubTitle}"
+                                TextColor="{StaticResource Title}" />
+                            <ImageButton
+                                x:Name="BtnSearch"
+                                BackgroundColor="Transparent"
+                                Clicked="BtnSearch_Clicked"
+                                HeightRequest="30"
+                                Source="Search.png"
+                                WidthRequest="30" />
+                        </StackLayout>
+                        <Frame BackgroundColor="{StaticResource ControlBackground}" CornerRadius="5">
+                            <StackLayout
+                                HorizontalOptions="CenterAndExpand"
+                                Orientation="Horizontal"
+                                Spacing="20">
+                                <customcontrols:RadioButton
+                                    x:Name="RadioSong"
+                                    CategoryImage="{StaticResource SongImage}"
+                                    CheckedImage="{StaticResource Checked}"
+                                    IsVisible="False"
+                                    UnCheckedImage="{StaticResource UnChecked}" />
+                                <customcontrols:RadioButton
+                                    x:Name="RadioAlbum"
+                                    CategoryImage="{StaticResource AlbumImage}"
+                                    CheckedImage="{StaticResource Checked}"
+                                    IsSelected="True"
+                                    UnCheckedImage="{StaticResource UnChecked}" />
+                                <customcontrols:RadioButton
+                                    x:Name="RadioArtist"
+                                    CategoryImage="{StaticResource ArtistImage}"
+                                    CheckedImage="{StaticResource Checked}"
+                                    UnCheckedImage="{StaticResource UnChecked}" />
+                                <ImageButton
+                                    x:Name="BtnLink"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="{StaticResource Icon}"
+                                    Clicked="BtnLink_Clicked"
+                                    HeightRequest="30"
+                                    Source="{StaticResource LinkImage}"
+                                    WidthRequest="30" />
+                                <ImageButton
+                                    x:Name="BtnSettings"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="{StaticResource Icon}"
+                                    Clicked="BtnSettings_Clicked"
+                                    HeightRequest="30"
+                                    Source="{StaticResource SettingsImage}"
+                                    WidthRequest="30" />
+                            </StackLayout>
+                        </Frame>
+                    </StackLayout>
+                </Grid>
+            </Frame>
+        </StackLayout>
+        <StackLayout x:Name="StackResults" Margin="0,140,0,0">
+            <ScrollView x:Name="ScrollResults" />
+        </StackLayout>
+    </Grid>
+</ContentPage>
