@@ -14,17 +14,17 @@ namespace Jux.Data.Search_Category
 {
     public class SearchArtistAlbum
     {
-        public static async Task<AlbumAndArtistSearchModel> Search(Search SearchType, string SearchText)
+        public static async Task<AlbumAndArtistSearchModel> Search(Search SearchType, string SearchText, int Start = 0, int ResultCount = 30)
         {
             string searchString = "";
 
             if(SearchType.ToString() == "Artist")
             {
-                searchString = $"https://api-jooxtt.sanook.com/web-fcgi-bin/web_category_search?country=za&lang=en&search_input={SearchText}&sin=0&ein=30&type=2";
+                searchString = $"https://api-jooxtt.sanook.com/web-fcgi-bin/web_category_search?country=za&lang=en&search_input={SearchText}&sin={Start}&ein={ResultCount}&type=2";
             }
             else
             {
-                searchString = $"https://api-jooxtt.sanook.com/web-fcgi-bin/web_category_search?country=za&lang=en&search_input={SearchText}&sin=0&ein=30&type=1";
+                searchString = $"https://api-jooxtt.sanook.com/web-fcgi-bin/web_category_search?country=za&lang=en&search_input={SearchText}&sin={Start}&ein={ResultCount}&type=1";
             }
 
             var resultSearchModels = new AlbumAndArtistSearchModel();

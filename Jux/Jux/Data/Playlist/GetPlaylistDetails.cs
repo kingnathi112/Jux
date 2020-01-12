@@ -7,9 +7,9 @@ namespace Jux.Data.Playlist
 {
     public class GetPlaylistDetails
     {
-        public static async Task<PlaylistModel> ById(string Id)
+        public static async Task<PlaylistModel> ById(string Id, int Start = 0, int ResultsCount = 50)
         {
-            string url = $"https://api-jooxtt.sanook.com/openjoox/v1/playlist/{Id}/tracks?country=za&lang=en&index=0&num=50";
+            string url = $"https://api-jooxtt.sanook.com/openjoox/v1/playlist/{Id}/tracks?country=za&lang=en&index={Start}&num={ResultsCount}";
             var resultSearchModels = new PlaylistModel();
 
             using (System.Net.Http.HttpResponseMessage response = await ApiClient.MobileApiClient.GetAsync(url))

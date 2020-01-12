@@ -3,6 +3,8 @@ using Jux.Helpers;
 using Jux.Interface;
 using Jux.Views;
 using MediaManager;
+using Plugin.Permissions;
+using Plugin.Permissions.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -212,6 +214,14 @@ namespace Jux.CustomViews
 
         private async void BtnDownload_Clicked(object sender, EventArgs e)
         {
+            PermissionStatus status = await CrossPermissions.Current.CheckPermissionStatusAsync<StoragePermission>();
+
+            if (status != PermissionStatus.Granted)
+            {
+                await CrossPermissions.Current.ShouldShowRequestPermissionRationaleAsync(Permission.Storage);
+                status = await CrossPermissions.Current.RequestPermissionAsync<StoragePermission>();
+                DependencyService.Get<IMessageCenter>().ShortMessage($"Storage Request {status.ToString()}");
+            }
             DependencyService.Get<IMessageCenter>().ShortMessage($"Downloading {Title}");
             await Task.Run(() => DownloadMusic());
             BackgroundColor = Color.Green;
@@ -282,28 +292,45 @@ namespace Jux.CustomViews
                 AlbumPicture = Song.Album_Image;
 
                 download = new DownloadHelper();
-                if (Url != "" || Url != null)
+                if (Url != "")
                 {
-                    var Downloaded = download.Song(Download.Single, Url, Artist, Album, Title, DownloadPath, "mp3", Song.High_Quality_Size, Number);                    
+                    var Downloaded = download.Song(Download.Single, Url, Artist, Album, Title, DownloadPath, "mp3", Song.High_Quality_Size, Number);
+                    var Completed = false;
+                    if (!download.IsExisting)
+                    {
+                        do
+                        {
+                            if (download.downloadProgress != 0)
+                            {
+                                progress = (double)download.downloadProgress / 100;
+                                Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
+                                Completed = download.downloadCompleted;
+                            }
+                        } while (Completed == false);
+                    }
                 }
                 else
                 {
-                    DependencyService.Get<IMessageCenter>().ShortMessage($"{Title} will be downloaded in normal quality");
-                    var Downloaded = download.Song(Download.Single, Url, Artist, Album, Title, DownloadPath, "mp3", Song.Normal_Quality_Size, Number);                    
-                }
+                    Url = Song.Normal_Quality;
 
-                var Completed = false;
-                if (!download.IsExisting)
-                {
-                    do
+                    if(Url != "")
                     {
-                        if (download.downloadProgress != 0)
+                        DependencyService.Get<IMessageCenter>().ShortMessage($"{Title} will be downloaded in normal quality");
+                        var Downloaded = download.Song(Download.Single, Url, Artist, Album, Title, DownloadPath, "mp3", Song.Normal_Quality_Size, Number);
+                        var Completed = false;
+                        if (!download.IsExisting)
                         {
-                            progress = (double)download.downloadProgress / 100;
-                            Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
-                            Completed = download.downloadCompleted;
+                            do
+                            {
+                                if (download.downloadProgress != 0)
+                                {
+                                    progress = (double)download.downloadProgress / 100;
+                                    Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
+                                    Completed = download.downloadCompleted;
+                                }
+                            } while (Completed == false);
                         }
-                    } while (Completed == false);
+                    }               
                 }
             }
             else
@@ -313,23 +340,26 @@ namespace Jux.CustomViews
                 var Url = Song.Normal_Quality;
                 AlbumPicture = Song.Album_Image;
 
-                download = new DownloadHelper();
-
-                var Downloaded = download.Song(Download.Single, Url, Artist, Album, Title, DownloadPath, "mp3", Song.Normal_Quality_Size, Number);
-
-                var Completed = false;
-                if (!download.IsExisting)
+                if(Url !="")
                 {
-                    do
+                    download = new DownloadHelper();
+
+                    var Downloaded = download.Song(Download.Single, Url, Artist, Album, Title, DownloadPath, "mp3", Song.Normal_Quality_Size, Number);
+
+                    var Completed = false;
+                    if (!download.IsExisting)
                     {
-                        if (download.downloadProgress != 0)
+                        do
                         {
-                            progress = (double)download.downloadProgress / 100;
-                            Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
-                            Completed = download.downloadCompleted;
-                        }
-                    } while (Completed == false);
-                }        
+                            if (download.downloadProgress != 0)
+                            {
+                                progress = (double)download.downloadProgress / 100;
+                                Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
+                                Completed = download.downloadCompleted;
+                            }
+                        } while (Completed == false);
+                    }
+                }
             }
 
             if (SaveImage)

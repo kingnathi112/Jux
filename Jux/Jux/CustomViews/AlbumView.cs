@@ -3,6 +3,8 @@ using Jux.Data.Search_Category;
 using Jux.Data.Song;
 using Jux.Helpers;
 using Jux.Interface;
+using Plugin.Permissions;
+using Plugin.Permissions.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -227,11 +229,20 @@ namespace Jux.CustomViews
         }
         private async void BtnDownload_Clicked(object sender, EventArgs e)
         {
+            PermissionStatus status = await CrossPermissions.Current.CheckPermissionStatusAsync<StoragePermission>();
+
+            if (status != PermissionStatus.Granted)
+            {
+                await CrossPermissions.Current.ShouldShowRequestPermissionRationaleAsync(Permission.Storage);
+                status = await CrossPermissions.Current.RequestPermissionAsync<StoragePermission>();
+                DependencyService.Get<IMessageCenter>().ShortMessage($"Storage Request {status.ToString()}");
+            }
+
             download = new DownloadHelper();
            if(LblDownloadCount.Text == " " || LblDownloadCount.Text == "")
-            {
-                UpdateWithYearAndNumberOfSongs();
-            }
+           {
+               UpdateWithYearAndNumberOfSongs();
+           }
 
             DependencyService.Get<IMessageCenter>().LongMessage($"Downloading {Album}");
             await Task.Run(() => DownloadMusic());
@@ -282,30 +293,48 @@ namespace Jux.CustomViews
 
                     download = new DownloadHelper();
 
-                    if (Url != "" || Url != null)
+                    if (Url != "" )
                     {
-                            var Downloaded = download.Song(Download.Album, Url, Artist, Album, Title, DownloadPath, "mp3", Song.High_Quality_Size, Number);                        
+                        var Downloaded = download.Song(Download.Album, Url, Artist, Album, Title, DownloadPath, "mp3", Song.High_Quality_Size, Number);
+                        var Completed = false;
+
+                        if (!download.IsExisting)
+                        {
+                            Device.BeginInvokeOnMainThread(() => LblDownloadCount.Text = $"{Number}/{NumberOfSongs}");
+                            do
+                            {
+                                if (download.downloadProgress != 0)
+                                {
+                                    progress = (double)download.downloadProgress / 100;
+                                    Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
+                                    Completed = download.downloadCompleted;
+                                }
+                            } while (Completed == false);
+                        }
                     }
                     else
                     {
-                            DependencyService.Get<IMessageCenter>().ShortMessage($"{Title} will be downloaded in normal quality");
-                            var Downloaded = download.Song(Download.Album, Url, Artist, Album, Title, DownloadPath, "mp3", Song.Normal_Quality_Size, Number);
-                    }
+                        Url = SongDetail.Normal_Quality;
 
-                    var Completed = false;
-
-                    if (!download.IsExisting)
-                    {
-                        Device.BeginInvokeOnMainThread(() => LblDownloadCount.Text = $"{Number}/{NumberOfSongs}");
-                        do
+                        if(Url != "")
                         {
-                            if (download.downloadProgress != 0)
+                            var Downloaded = download.Song(Download.Album, Url, Artist, Album, Title, DownloadPath, "mp3", Song.Normal_Quality_Size, Number);
+                            var Completed = false;
+
+                            if (!download.IsExisting)
                             {
-                                progress = (double)download.downloadProgress / 100;
-                                Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
-                                Completed = download.downloadCompleted;
+                                Device.BeginInvokeOnMainThread(() => LblDownloadCount.Text = $"{Number}/{NumberOfSongs}");
+                                do
+                                {
+                                    if (download.downloadProgress != 0)
+                                    {
+                                        progress = (double)download.downloadProgress / 100;
+                                        Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
+                                        Completed = download.downloadCompleted;
+                                    }
+                                } while (Completed == false);
                             }
-                        } while (Completed == false);
+                        }
                     }
                 }
             }
@@ -321,14 +350,13 @@ namespace Jux.CustomViews
                     var Url = SongDetail.Normal_Quality;
                     AlbumPicture = SongDetail.Album_Image;
 
-                    download = new DownloadHelper();
 
-                    var Downloaded = download.Song(Download.Album, Url, Artist, Album, Title, DownloadPath, "mp3", Song.Normal_Quality_Size, Number);
-
-                    var Completed = false;
-
-                    if (!download.IsExisting)
+                    if (!download.IsExisting && Url != "")
                     {
+                        download = new DownloadHelper();
+                        var Downloaded = download.Song(Download.Album, Url, Artist, Album, Title, DownloadPath, "mp3", Song.Normal_Quality_Size, Number);
+
+                        var Completed = false;
                         Device.BeginInvokeOnMainThread(() => LblDownloadCount.Text = $"{Number}/{NumberOfSongs}");
                         do
                         {

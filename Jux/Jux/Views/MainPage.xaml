@@ -28,6 +28,7 @@
                         <StackLayout Orientation="Horizontal">
                             <controls:ExtendedEntry
                                 x:Name="TxtSearch"
+                                Completed="BtnSearch_Clicked"
                                 HasBorder="True"
                                 HorizontalOptions="FillAndExpand"
                                 Placeholder="Search..."
@@ -87,6 +88,39 @@
         </StackLayout>
         <StackLayout x:Name="StackResults" Margin="0,140,0,0">
             <ScrollView x:Name="ScrollResults" />
+            <StackLayout
+                x:Name="StackNavigation"
+                HorizontalOptions="Center"
+                IsVisible="False"
+                Orientation="Horizontal"
+                Spacing="15">
+                <ImageButton
+                    x:Name="BtnFirst"
+                    Clicked="BtnFirst_Clicked"
+                    HeightRequest="30"
+                    IsEnabled="False"
+                    Source="FirstDisabled.png"
+                    WidthRequest="30" />
+                <ImageButton
+                    x:Name="BtnPrevious"
+                    Clicked="BtnPrevious_Clicked"
+                    HeightRequest="30"
+                    IsEnabled="False"
+                    Source="PreviousDisabled.png"
+                    WidthRequest="30" />
+                <ImageButton
+                    x:Name="BtnNext"
+                    Clicked="BtnNext_Clicked"
+                    HeightRequest="30"
+                    Source="Next.png"
+                    WidthRequest="30" />
+                <ImageButton
+                    x:Name="BtnLast"
+                    Clicked="BtnLast_Clicked"
+                    HeightRequest="30"
+                    Source="Last.png"
+                    WidthRequest="30" />
+            </StackLayout>
         </StackLayout>
     </Grid>
 </ContentPage>

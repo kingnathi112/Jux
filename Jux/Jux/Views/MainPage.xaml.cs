@@ -24,6 +24,9 @@ namespace Jux
         event ConnectivityChangedEventHandler ConnectivityChanged;
         Category.Search SearchType;
         string SearchText = "";
+        int ResultNum = 0;
+        int limit = 30;
+        int index = 0;
         public MainPage()
         {
             InitializeComponent();
@@ -47,6 +50,11 @@ namespace Jux
                 RadioArtist.IsSelected = false;
                 RadioSong.IsSelected = false;
                 SearchType = Category.Search.Album;
+                limit = 30;
+                if (TxtSearch.Text != "")
+                {
+                    BtnSearch_Clicked(s, e);
+                }
             };
             RadioSong.OnTapped += (s, e) =>
             {
@@ -58,6 +66,11 @@ namespace Jux
                 RadioAlbum.IsSelected = false;
                 RadioSong.IsSelected = false;
                 SearchType = Category.Search.Artist;
+                limit = 30;
+                if (TxtSearch.Text != "")
+                {
+                    BtnSearch_Clicked(s, e);
+                }
             };
         }
 
@@ -66,7 +79,8 @@ namespace Jux
             if (RadioAlbum.IsSelected)
             {
                 SearchType = Category.Search.Album;
-            }else if(RadioArtist.IsSelected)
+            }
+            else if(RadioArtist.IsSelected)
             {
                 SearchType = Category.Search.Artist;
             }
@@ -96,19 +110,29 @@ namespace Jux
         private async void BtnLink_Clicked(object sender, EventArgs e)
         {
             BtnLink.IsEnabled = false;
-           await Navigation.PushPopupAsync(new Link(), true);
+            await Navigation.PushPopupAsync(new Link(), true);
             BtnLink.IsEnabled = true;
         }
 
         private async void BtnSearch_Clicked(object sender, EventArgs e)
         {
-            SearchText = TxtSearch.Text;
+            SearchText = TxtSearch.Text.Trim();
+            StackNavigation.IsVisible = false;
             if (RadioAlbum.IsSelected)
             {
                 BtnSearch.IsEnabled = false;
                 ScrollResults.Content = await ActiveIndicator.DisplayBusy();
                 ScrollResults.Content = await AlbumStackAsync();
                 BtnSearch.IsEnabled = true;
+
+                if (ResultNum > 30)
+                {
+                    StackNavigation.IsVisible = true;
+                }
+                else
+                {
+                    StackNavigation.IsVisible = false;
+                }
             }
             else
             {
@@ -116,17 +140,26 @@ namespace Jux
                 ScrollResults.Content = await ActiveIndicator.DisplayBusy();
                 ScrollResults.Content = await ArtistStackAsync();
                 BtnSearch.IsEnabled = true;
+
+                if (ResultNum > 30)
+                {
+                    StackNavigation.IsVisible = true;
+                }
+                else
+                {
+                    StackNavigation.IsVisible = false;
+                }
             }
         }
 
         #region Search Methods
-        private async Task<AlbumAndArtistSearchModel> ArtistOrAlbumSearchAsync()
+        private async Task<AlbumAndArtistSearchModel> ArtistOrAlbumSearchAsync(int Index = 0, int Limit = 30)
         {
             if(SearchText != "" && SearchText != null)
             {
                 if (CrossConnectivity.Current.IsConnected)
                 {
-                    var SearchResults = await SearchArtistAlbum.Search(SearchType, SearchText);
+                    var SearchResults = await SearchArtistAlbum.Search(SearchType, SearchText, Index, Limit);
                     return SearchResults;
                 }
                 else
@@ -147,11 +180,12 @@ namespace Jux
         private async Task<StackLayout> AlbumStackAsync()
         {
             StackLayout albumStack = new StackLayout();
-            var JuxResults = await ArtistOrAlbumSearchAsync();
+            var JuxResults = await ArtistOrAlbumSearchAsync(index, limit);
             if(JuxResults != null)
             {
 
                 var ResultCount = JuxResults.Results.Count;
+                ResultNum = JuxResults.Total;
                 var CountMatch = 0;
 
                 string Artist = "";
@@ -192,6 +226,7 @@ namespace Jux
                             LineBreakMode = LineBreakMode.WordWrap,
                             HorizontalTextAlignment = TextAlignment.Center
                         });
+                        StackNavigation.IsVisible = false;
                     }
                 });
             }
@@ -201,11 +236,12 @@ namespace Jux
         private async Task<StackLayout> ArtistStackAsync()
         {
             StackLayout artistStack = new StackLayout();
-            var JuxResults = await ArtistOrAlbumSearchAsync();
+            var JuxResults = await ArtistOrAlbumSearchAsync(index, limit);
             if (JuxResults != null)
             {
 
                 var ResultCount = JuxResults.Results.Count;
+                ResultNum = JuxResults.Total;
                 var CountMatch = 0;
 
                 string Artist = "";
@@ -245,11 +281,98 @@ namespace Jux
                             LineBreakMode = LineBreakMode.WordWrap,
                             HorizontalTextAlignment = TextAlignment.Center
                         });
+                        StackNavigation.IsVisible = false;
                     }
                 });
             }
             return artistStack;
         }
         #endregion
+
+        private void BtnLast_Clicked(object sender, EventArgs e)
+        {
+            index = ResultNum - 30;
+            limit = ResultNum;
+            BtnSearch_Clicked(sender, e);
+
+            BtnLast.IsEnabled = false;
+            BtnLast.Source = "LastDisabled.png";
+
+            BtnNext.IsEnabled = false;
+            BtnNext.Source = "NextDisabled.png";
+
+            BtnFirst.IsEnabled = true;
+            BtnFirst.Source = "First.png";
+
+            BtnPrevious.IsEnabled = true;
+            BtnPrevious.Source = "Previous.png";
+        }
+
+        private void BtnFirst_Clicked(object sender, EventArgs e)
+        {
+            index = 0;
+            limit = 30;
+            BtnSearch_Clicked(sender, e);
+
+            BtnFirst.IsEnabled = false;
+            BtnFirst.Source = "FirstDisabled.png";
+
+            BtnPrevious.IsEnabled = false;
+            BtnPrevious.Source = "PreviousDisabled.png";
+
+            BtnLast.IsEnabled = true;
+            BtnLast.Source = "Last.png";
+
+            BtnNext.IsEnabled = true;
+            BtnNext.Source = "Next.png";
+        }
+
+        private void BtnNext_Clicked(object sender, EventArgs e)
+        {
+            index += 30;
+            limit += 30;
+
+            if(limit <= ResultNum)
+            {
+                BtnFirst.IsEnabled = true;
+                BtnFirst.Source = "First.png";
+
+                BtnPrevious.IsEnabled = true;
+                BtnPrevious.Source = "Previous.png";
+                BtnSearch_Clicked(sender, e);
+            }
+            else
+            {
+                BtnLast.IsEnabled = false;
+                BtnLast.Source = "LastDisabled.png";
+
+                BtnNext.IsEnabled = false;
+                BtnNext.Source = "NextDisabled.png";
+            }
+        }
+
+        private void BtnPrevious_Clicked(object sender, EventArgs e)
+        {
+            index -= 30;
+            limit -= 30;
+
+            if (index >= 0)
+            {
+                BtnLast.IsEnabled = true;
+                BtnLast.Source = "Last.png";
+
+                BtnNext.IsEnabled = true;
+                BtnNext.Source = "Next.png";
+
+                BtnSearch_Clicked(sender, e);
+            }
+            else
+            {
+                BtnFirst.IsEnabled = false;
+                BtnFirst.Source = "FirstDisabled.png";
+                BtnPrevious.IsEnabled = false;
+                BtnPrevious.Source = "PreviousDisabled.png";
+            }
+        }
     }
 }

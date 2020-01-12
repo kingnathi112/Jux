@@ -3,6 +3,8 @@ using Jux.Helpers;
 using Jux.Interface;
 using Jux.Models.PlaylistModel;
 using Jux.Views;
+using Plugin.Permissions;
+using Plugin.Permissions.Abstractions;
 using Rg.Plugins.Popup.Extensions;
 using System;
 using System.Collections.Generic;
@@ -235,6 +237,14 @@ namespace Jux.CustomViews
 
         private async void BtnDownload_Clicked(object sender, EventArgs e)
         {
+            PermissionStatus status = await CrossPermissions.Current.CheckPermissionStatusAsync<StoragePermission>();
+
+            if (status != PermissionStatus.Granted)
+            {
+                await CrossPermissions.Current.ShouldShowRequestPermissionRationaleAsync(Permission.Storage);
+                status = await CrossPermissions.Current.RequestPermissionAsync<StoragePermission>();
+                DependencyService.Get<IMessageCenter>().ShortMessage($"Storage Request {status.ToString()}");
+            }
             DependencyService.Get<IMessageCenter>().LongMessage($"Downloading {Title}");
             await Task.Run(() => DownloadMusic());
             BackgroundColor = Color.Green;
@@ -251,31 +261,21 @@ namespace Jux.CustomViews
             var AlbumPicture = ImageUrl;
             double progress = 0.0;
             int count = 0;
-
-            try
+            if (Quality)
             {
-                if (Quality)
+                foreach (var Song in SongList.Details)
                 {
-                    foreach (var Song in SongList.Details)
+                    var SongInfo = GetSongDetails.ById(Song.SongId).Result;
+                    var Url = SongInfo.High_Quality;
+                    var SongTitle = SongInfo.Title;
+                    var Number = SongInfo.Number;
+
+                    download = new DownloadHelper();
+
+                    count += 1;
+                    if(Url != "")
                     {
-                        var SongInfo = GetSongDetails.ById(Song.SongId).Result;
-                        var Url = SongInfo.High_Quality;
-                        var SongTitle = SongInfo.Title;
-                        var Number = SongInfo.Number;
-
-                        download = new DownloadHelper();
-
-                        count += 1;
-                        if(Url != "" || Url != null)
-                        {
-                            var Downloaded = download.Song(Download.Single, Url, SongInfo.Artist, Title, SongTitle, DownloadPath, "mp3", SongInfo.High_Quality_Size, count);
-                        }
-                        else
-                        {
-                            DependencyService.Get<IMessageCenter>().ShortMessage($"{SongTitle} will be downloaded in normal quality");
-                            var Downloaded = download.Song(Download.Single, SongInfo.Normal_Quality, SongInfo.Artist, Title, SongTitle, DownloadPath, "mp3", SongInfo.Normal_Quality_Size, count);
-                        }
-
+                        var Downloaded = download.Song(Download.Single, Url, SongInfo.Artist, Title, SongTitle, DownloadPath, "mp3", SongInfo.High_Quality_Size, count);
                         var Completed = false;
                         if (!download.IsExisting)
                         {
@@ -291,18 +291,44 @@ namespace Jux.CustomViews
                             } while (Completed == false);
                         }
                     }
-                }
-                else
-                {
-                    foreach (var Song in SongList.Details)
+                    else
                     {
-                        var SongInfo = GetSongDetails.ById(Song.SongId).Result;
-                        var Url = SongInfo.Normal_Quality;
-                        var SongTitle = SongInfo.Title;
-                        var Number = SongInfo.Number;
-                        count += 1;
+                        Url = SongInfo.Normal_Quality;
+                        if(Url != "")
+                        {
+                            DependencyService.Get<IMessageCenter>().ShortMessage($"{SongTitle} will be downloaded in normal quality");
+                            var Downloaded = download.Song(Download.Single, SongInfo.Normal_Quality, SongInfo.Artist, Title, SongTitle, DownloadPath, "mp3", SongInfo.Normal_Quality_Size, count);
+                            var Completed = false;
+                            if (!download.IsExisting)
+                            {
+                                Device.BeginInvokeOnMainThread(() => LblDownloadCount.Text = $"{count}/{Number_Of_Songs}");
+                                do
+                                {
+                                    if (download.downloadProgress != 0)
+                                    {
+                                        progress = (double)download.downloadProgress / 100;
+                                        Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
+                                        Completed = download.downloadCompleted;
+                                    }
+                                } while (Completed == false);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (var Song in SongList.Details)
+                {
+                    var SongInfo = GetSongDetails.ById(Song.SongId).Result;
+                    var Url = SongInfo.Normal_Quality;
+                    var SongTitle = SongInfo.Title;
+                    var Number = SongInfo.Number;
+                    count += 1;
 
-                        download = new DownloadHelper();
+                    download = new DownloadHelper();
+                    if (Url != "")
+                    {
                         var Downloaded = download.Song(Download.Single, Url, SongInfo.Artist, Title, SongTitle, DownloadPath, "mp3", SongInfo.Normal_Quality_Size, count);
                         var Completed = false;
                         if (!download.IsExisting)
@@ -320,18 +346,14 @@ namespace Jux.CustomViews
                         }
                     }
                 }
-
-
-                if (SaveImage)
-                {
-                    var ImgUrl = AlbumPicture;
-                    var DownloadImage = download.AlbumImage(ImgUrl, Title, DownloadPath);
-                }
-            }catch(Exception ex)
-            {
-                DependencyService.Get<IMessageCenter>().LongMessage(ex.Message);
             }
 
+
+            if (SaveImage)
+            {
+                var ImgUrl = AlbumPicture;
+                var DownloadImage = download.AlbumImage(ImgUrl, Title, DownloadPath);
+            }
         }
     }
 }

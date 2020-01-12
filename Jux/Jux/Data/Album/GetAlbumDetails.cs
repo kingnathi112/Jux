@@ -31,9 +31,9 @@ namespace Jux.Data.Album
             }
         }
 
-        public static async Task<ArtistAlbumsModel> ByArtistId(int ArtistId)
+        public static async Task<ArtistAlbumsModel> ByArtistId(int ArtistId, int Index = 0, int Limit = 29)
         {
-            string url = $"https://api-jooxtt.sanook.com/web-fcgi-bin/web_album_singer?country=za&lang=en&cmd=1&singerid={ArtistId}&ein=29";
+            string url = $"https://api-jooxtt.sanook.com/web-fcgi-bin/web_album_singer?country=za&lang=en&cmd=1&singerid={ArtistId}&ein={Limit}&sin={Index}";
             var resultSearchModels = new ArtistAlbumsModel();
 
             using (System.Net.Http.HttpResponseMessage response = await ApiClient.MobileApiClient.GetAsync(url))
