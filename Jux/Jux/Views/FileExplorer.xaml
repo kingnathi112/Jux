@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<pages:PopupPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             xmlns:pages="clr-namespace:Rg.Plugins.Popup.Pages;assembly=Rg.Plugins.Popup"
+                 xmlns:animations="clr-namespace:Rg.Plugins.Popup.Animations;assembly=Rg.Plugins.Popup"
+                 x:Class="Jux.Views.FileExplorer">
+    <pages:PopupPage.Animation>
+        <animations:ScaleAnimation
+            DurationIn="400"
+            DurationOut="300"
+            EasingIn="SinOut"
+            EasingOut="SinIn"
+            HasBackgroundAnimation="True"
+            PositionIn="Center"
+            PositionOut="Center"
+            ScaleIn="1.2"
+            ScaleOut="0.8" />
+    </pages:PopupPage.Animation>
+    
+        <StackLayout>
+            <Button x:Name="BtnFilePicker" Text="File Picker" Clicked="BtnFilePicker_Clicked"/>
+        <Label x:Name="LblFileName" TextColor="White" FontSize="Large"/>
+        <Label x:Name="LblName" TextColor="White" FontSize="Large"/>
+        <Label x:Name="LblArtName" TextColor="White" FontSize="Large"/>
+        <Label x:Name="LblArtistsName" TextColor="White" FontSize="Large"/>
+        <Editor x:Name="TxtArtist" Placeholder="Artist" PlaceholderColor="Yellow" TextColor="Green"/>
+        <Editor x:Name="TxtAlbum" Placeholder="Album"  PlaceholderColor="Yellow" TextColor="Green"/>
+        <Editor x:Name="TxtTitle" Placeholder="Title" PlaceholderColor="Yellow" TextColor="Green"/>
+
+        <Button x:Name="BtnSave" Text="SAVE" Clicked="BtnSave_Clicked"/>
+    </StackLayout>
+
+</pages:PopupPage>

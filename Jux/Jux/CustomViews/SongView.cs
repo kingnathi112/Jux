@@ -127,6 +127,7 @@ namespace Jux.CustomViews
         #endregion
 
         public event EventHandler OnTapped;
+        WriteTags TagAudio;
 
         public SongView()
         {
@@ -279,10 +280,18 @@ namespace Jux.CustomViews
             Year = $"{Convert.ToDateTime(Song.Date).Year}";
             var AlbumTitle = $"{Year} - {Album}";
             var DownloadPath = DependencyService.Get<IFolderManager>().Music(Artist, AlbumTitle);
+            var DownloadedImage = "";
+            download = new DownloadHelper();
 
-            var AlbumPicture = "";
+            var AlbumPicture = Song.Album_Image;
 
             double progress = 0.0;
+
+            if (SaveImage)
+            {
+                var ImgUrl = AlbumPicture;
+                DownloadedImage = download.AlbumImage(ImgUrl, Album, DownloadPath);
+            }
 
             if (Quality)
             {
@@ -291,7 +300,10 @@ namespace Jux.CustomViews
                 var Url = Song.High_Quality;
                 AlbumPicture = Song.Album_Image;
 
-                download = new DownloadHelper();
+
+                var date = Convert.ToUInt32(Year);
+                string[] artists = new string[] { Artist };
+
                 if (Url != "")
                 {
                     var Downloaded = download.Song(Download.Single, Url, Artist, Album, Title, DownloadPath, "mp3", Song.High_Quality_Size, Number);
@@ -307,6 +319,9 @@ namespace Jux.CustomViews
                                 Completed = download.downloadCompleted;
                             }
                         } while (Completed == false);
+
+                        TagAudio = new WriteTags(artists, Title, Album, (uint)date, (uint)Number, DownloadedImage, Downloaded);
+                        TagAudio.Save();
                     }
                 }
                 else
@@ -329,6 +344,8 @@ namespace Jux.CustomViews
                                     Completed = download.downloadCompleted;
                                 }
                             } while (Completed == false);
+                            TagAudio = new WriteTags(artists, Title, Album, (uint)date, (uint)Number, DownloadedImage, Downloaded);
+                            TagAudio.Save();
                         }
                     }               
                 }
@@ -340,7 +357,11 @@ namespace Jux.CustomViews
                 var Url = Song.Normal_Quality;
                 AlbumPicture = Song.Album_Image;
 
-                if(Url !="")
+
+                var date = Convert.ToUInt32(Year);
+                string[] artists = new string[] { Artist };
+
+                if (Url !="")
                 {
                     download = new DownloadHelper();
 
@@ -358,15 +379,12 @@ namespace Jux.CustomViews
                                 Completed = download.downloadCompleted;
                             }
                         } while (Completed == false);
+                        TagAudio = new WriteTags(artists, Title, Album, (uint)date, (uint)Number, DownloadedImage, Downloaded);
+                        TagAudio.Save();
                     }
                 }
             }
 
-            if (SaveImage)
-            {
-                var ImgUrl = AlbumPicture;
-                var DownloadImage = download.AlbumImage(ImgUrl, Album, DownloadPath);
-            }
         }
     }
 }

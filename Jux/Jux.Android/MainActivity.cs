@@ -7,6 +7,7 @@ using MediaManager;
 using Plugin.Permissions;
 using Rg.Plugins.Popup.Services;
 using System.IO;
+using Android.Content;
 
 namespace Jux.Droid
 {
@@ -14,6 +15,7 @@ namespace Jux.Droid
     public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
         private static MainActivity instance;
+        public string JuxLink { get; set; }
         protected override void OnCreate(Bundle savedInstanceState)
         {
             TabLayoutResource = Resource.Layout.Tabbar;
@@ -27,7 +29,28 @@ namespace Jux.Droid
             Plugin.CurrentActivity.CrossCurrentActivity.Current.Init(this, savedInstanceState);
             CrossMediaManager.Current.Init(this);
 
+            Intent intent = new Intent();
+            var action = intent.Action;
+            var type = intent.Type;
+
+            if (Intent.ActionSend.Equals(action) && type != null)
+            {
+                if (type.Contains("text/"))
+                {
+                    HandleLinkText(intent);
+                }
+            }
+
             LoadApplication(new App());
+        }
+
+        void HandleLinkText(Intent intent)
+        {
+            var urlText = intent.GetStringExtra(Intent.ExtraText);
+            if (urlText != null)
+            {
+                JuxLink = urlText;
+            }
         }
         protected override void OnDestroy()
         {
@@ -44,6 +67,7 @@ namespace Jux.Droid
                 await PopupNavigation.PopAsync(true);
             }
         }
+
         #region Folders
         public string JuxFolder
         {
@@ -86,6 +110,7 @@ namespace Jux.Droid
         }
 
         #endregion
+
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
         {
             PermissionsImplementation.Current.OnRequestPermissionsResult(requestCode, permissions, grantResults);

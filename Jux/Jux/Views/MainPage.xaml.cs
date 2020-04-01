@@ -13,6 +13,7 @@ using Xamarin.Forms;
 using Plugin.Connectivity;
 using Plugin.Connectivity.Abstractions;
 using Jux.Data.Album;
+using System.Linq;
 
 namespace Jux
 {
@@ -49,6 +50,7 @@ namespace Jux
             {
                 RadioArtist.IsSelected = false;
                 RadioSong.IsSelected = false;
+                RadioNewAlbum.IsSelected = false;
                 SearchType = Category.Search.Album;
                 limit = 30;
                 if (TxtSearch.Text != "")
@@ -59,12 +61,15 @@ namespace Jux
             RadioSong.OnTapped += (s, e) =>
             {
                 RadioArtist.IsSelected = false;
+                RadioNewAlbum.IsSelected = false;
                 RadioAlbum.IsSelected = false;
-            };
+            }; 
+            RadioNewAlbum.OnTapped += RadioNewAlbum_OnTapped;
             RadioArtist.OnTapped += (s, e) =>
             {
                 RadioAlbum.IsSelected = false;
                 RadioSong.IsSelected = false;
+                RadioNewAlbum.IsSelected = false;
                 SearchType = Category.Search.Artist;
                 limit = 30;
                 if (TxtSearch.Text != "")
@@ -72,6 +77,24 @@ namespace Jux
                     BtnSearch_Clicked(s, e);
                 }
             };
+        }
+
+        private async void RadioNewAlbum_OnTapped(object sender, EventArgs e)
+        {
+            RadioArtist.IsSelected = false;
+            RadioSong.IsSelected = false;
+            RadioAlbum.IsSelected = false;
+            limit = 50;
+
+            StackNavigation.IsVisible = false;
+
+            if (RadioNewAlbum.IsSelected)
+            {
+                BtnSearch.IsEnabled = false;
+                ScrollResults.Content = await ActiveIndicator.DisplayBusy();
+                ScrollResults.Content = await NewAlbumsAsync();
+                BtnSearch.IsEnabled = true;
+            }
         }
 
         void CheckSelectedButton()
@@ -83,6 +106,14 @@ namespace Jux
             else if(RadioArtist.IsSelected)
             {
                 SearchType = Category.Search.Artist;
+            }
+            else if (RadioSong.IsSelected)
+            {
+                SearchType = Category.Search.Song;
+            }
+            else if (RadioNewAlbum.IsSelected)
+            {
+                SearchType = Category.Search.NewAlbums;
             }
             else
             {
@@ -111,6 +142,7 @@ namespace Jux
         {
             BtnLink.IsEnabled = false;
             await Navigation.PushPopupAsync(new Link(), true);
+            //await Navigation.PushPopupAsync(new FileExplorer(), true);
             BtnLink.IsEnabled = true;
         }
 
@@ -286,6 +318,61 @@ namespace Jux
                 });
             }
             return artistStack;
+        }
+
+        private async Task<StackLayout> NewAlbumsAsync()
+        {
+            var stackNewAlbums = new StackLayout();
+            var juxResults = await SearchArtistAlbum.NewAlbums(index, limit);
+
+            if (juxResults != null)
+            {
+                var ResultCount = juxResults.Albums.Albums.Count;
+                var Albums = juxResults.Albums.Albums;
+                ResultNum = juxResults.Albums.Total_Count;
+
+                string Artist = "";
+                string Album = "";
+                string Url = "";
+                string Id = "";
+                string ReleaseDate = "";
+
+                await Task.Run(() => 
+                { 
+                    for(int i = 0; i <= ResultCount - 1; i++)
+                    {
+                        albumView = new AlbumView();
+
+                         Artist = Albums[i].Artists.Select(a => a.ArtistName).FirstOrDefault();
+                         Album = Albums[i].AlbumTitle;
+                         Url = Albums[i].AlbumCover.Where(p => p.Height > 300).Select(p => p.Url).FirstOrDefault();
+                         Id = Albums[i].AlbumId;
+                         ReleaseDate = Convert.ToDateTime(Albums[i].Date).Year.ToString();
+
+                        albumView.Artist = Artist;
+                        albumView.Album = Album;
+                        albumView.AlbumIdStr = Id;
+                        albumView.ImageUrl = Url;
+                        albumView.Year = ReleaseDate;
+                        albumView.DownloadCount = $" ";
+
+                        stackNewAlbums.Children.Add(albumView);
+                    }                
+                });
+            }
+            else
+            {
+                stackNewAlbums.Children.Add(new Label
+                {
+                    Text = $"Nothing was found for {SearchText}, try with another Title.",
+                    FontSize = 15,
+                    TextColor = Color.White,
+                    LineBreakMode = LineBreakMode.WordWrap,
+                    HorizontalTextAlignment = TextAlignment.Center
+                });
+                StackNavigation.IsVisible = false;
+            }
+            return stackNewAlbums;
         }
         #endregion
 

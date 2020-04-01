@@ -8,7 +8,9 @@ using Jux.Interface;
 using Rg.Plugins.Popup.Pages;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -32,9 +34,15 @@ namespace Jux.Views
         public Link()
         {
             InitializeComponent();
+            var intentLink = DependencyService.Get<IAndroidServices>().JooxLink();
             if (Clipboard.HasText)
             {
                 TxtLink.Text = Clipboard.GetTextAsync().Result;                
+            }
+
+            if (intentLink != null)
+            {
+                TxtLink.Text = intentLink;
             }
         }
         #region Popup Properties
@@ -64,11 +72,26 @@ namespace Jux.Views
         }
         #endregion
 
+
+        string UrlParam(string url, string parameter)
+        {
+            try
+            {
+                var Url = new Uri(url);
+                var Param = HttpUtility.ParseQueryString(Url.Query).Get(parameter);
+                var encParam = HttpUtility.UrlEncode(Param);
+                return encParam;
+            }
+            catch
+            {
+                return null;
+            }
+        }
         private string GetId(string url)
         {
             if (url.Contains("page=playsong"))
             {
-                var Id = url.Substring(url.LastIndexOf("/") + 1).Trim().Replace("?appshare=android", "");
+                var Id = UrlParam(url, "songid");
                 isSong = true;
                 return Id;
             }

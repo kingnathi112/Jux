@@ -1,6 +1,7 @@
 ﻿using Jux.Helpers;
 using Jux.Models.AlbumModel;
 using Jux.Models.ArtistModel;
+using Jux.Models.NewAlbumsModel;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -50,5 +51,26 @@ namespace Jux.Data.Album
                 }
             }
         }
+
+        public static async Task<NewAlbumSongsModel> ByEncodedId(string Id)
+        {
+            string url = $"https://api-jooxtt.sanook.com/openjoox/v1/album/{Id}/tracks?country=za&lang=en";
+            var resultSearchModels = new NewAlbumSongsModel();
+
+            using (System.Net.Http.HttpResponseMessage response = await ApiClient.MobileApiClient.GetAsync(url))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var results = await response.Content.ReadAsStringAsync();
+                    resultSearchModels = JsonConvert.DeserializeObject<NewAlbumSongsModel>(results);
+                    return resultSearchModels;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
     }
 }

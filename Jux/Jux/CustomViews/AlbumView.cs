@@ -50,6 +50,7 @@ namespace Jux.CustomViews
             set => SetValue(DownloadCountProperty, value);
         }
         public int AlbumId = 0;
+        public string AlbumIdStr = "";
 
         bool Quality;
         bool SaveImage;
@@ -121,6 +122,7 @@ namespace Jux.CustomViews
         #endregion
 
         public event EventHandler OnTapped;
+        WriteTags TagAudio;
 
         #region Controls
         Grid AlbumGrid;
@@ -222,10 +224,18 @@ namespace Jux.CustomViews
 
         public async void UpdateWithYearAndNumberOfSongs()
         {
-            var AlbumDetails =  await GetAlbumDetails.ById(AlbumId);
-            LblDownloadCount.Text = $"{AlbumDetails.NumberOfSongs}";
-            string year = ConvertJuxString.Decode(AlbumDetails.AlbumInformation.Date);
-            LblYear.Text = $"{Convert.ToDateTime(year).Year}";
+           if(AlbumId > 0 && AlbumIdStr == "")
+            {
+                var AlbumDetails = await GetAlbumDetails.ById(AlbumId);
+                LblDownloadCount.Text = $"{AlbumDetails.NumberOfSongs}";
+                string year = ConvertJuxString.Decode(AlbumDetails.AlbumInformation.Date);
+                LblYear.Text = $"{Convert.ToDateTime(year).Year}";
+            }
+            else
+            {
+                var AlbumDetails = await GetAlbumDetails.ByEncodedId(AlbumIdStr);
+                LblDownloadCount.Text = $"{AlbumDetails.Songs.Number_Of_Songs}";
+            }
         }
         private async void BtnDownload_Clicked(object sender, EventArgs e)
         {
@@ -244,12 +254,24 @@ namespace Jux.CustomViews
                UpdateWithYearAndNumberOfSongs();
            }
 
-            DependencyService.Get<IMessageCenter>().LongMessage($"Downloading {Album}");
-            await Task.Run(() => DownloadMusic());
-            BackgroundColor = Color.Green;
+           if(AlbumId > 0 && AlbumIdStr =="")
+            {
+                DependencyService.Get<IMessageCenter>().LongMessage($"Downloading {Album}");
+                await Task.Run(() => DownloadMusic());
+                BackgroundColor = Color.Green;
 
-            DependencyService.Get<IMessageCenter>().ShortMessage($"{Artist} - {Album} Downloaded!");
-            DownloadProgress.Progress = 0;
+                DependencyService.Get<IMessageCenter>().ShortMessage($"{Artist} - {Album} Downloaded!");
+                DownloadProgress.Progress = 0;
+            }
+            else
+            {
+                DependencyService.Get<IMessageCenter>().LongMessage($"Downloading {Album}");
+                await Task.Run(() => DownloadMusic(AlbumIdStr));
+                BackgroundColor = Color.Green;
+
+                DependencyService.Get<IMessageCenter>().ShortMessage($"{Artist} - {Album} Downloaded!");
+                DownloadProgress.Progress = 0;
+            }
         }
         private void SetGridView()
         {
@@ -274,10 +296,17 @@ namespace Jux.CustomViews
             NumberOfSongs = $"{AlbumDetails.NumberOfSongs}";
             var AlbumTitle = $"{Year} - {Album}";
             var DownloadPath = DependencyService.Get<IFolderManager>().Music(Artist, AlbumTitle);
-
             var AlbumPicture = "";
-
+            var DownloadedImage = "";
             double progress = 0.0;
+
+            
+
+            if (SaveImage)
+            {
+                var ImgUrl = AlbumDetails.AlbumInformation.High_Quality_Picture;
+                DownloadedImage = download.AlbumImage(ImgUrl, Album, DownloadPath);
+            }
 
             if (Quality)
             {
@@ -290,6 +319,10 @@ namespace Jux.CustomViews
                     var SongDetail = GetSongDetails.ById(SongId).Result;
                     var Url = SongDetail.High_Quality;
                     AlbumPicture = SongDetail.Album_Image;
+
+                    var date = Convert.ToDateTime(year).Year;
+                    string[] artists = new string[] { Artist };
+                   
 
                     download = new DownloadHelper();
 
@@ -310,6 +343,8 @@ namespace Jux.CustomViews
                                     Completed = download.downloadCompleted;
                                 }
                             } while (Completed == false);
+                            TagAudio = new WriteTags(artists, Title, Album, (uint)date,(uint)Number, DownloadedImage, Downloaded);
+                            TagAudio.Save();
                         }
                     }
                     else
@@ -333,6 +368,8 @@ namespace Jux.CustomViews
                                         Completed = download.downloadCompleted;
                                     }
                                 } while (Completed == false);
+                                TagAudio = new WriteTags(artists, Title, Album, (uint)date, (uint)Number, DownloadedImage, Downloaded);
+                                TagAudio.Save();
                             }
                         }
                     }
@@ -350,6 +387,8 @@ namespace Jux.CustomViews
                     var Url = SongDetail.Normal_Quality;
                     AlbumPicture = SongDetail.Album_Image;
 
+                    var date = Convert.ToDateTime(year).Year;
+                    string[] artists = new string[] { Artist };
 
                     if (!download.IsExisting && Url != "")
                     {
@@ -367,6 +406,120 @@ namespace Jux.CustomViews
                                 Completed = download.downloadCompleted;
                             }
                         } while (Completed == false);
+                        TagAudio = new WriteTags(artists, Title, Album, (uint)date, (uint)Number, DownloadedImage, Downloaded);
+                        TagAudio.Save();
+                    }
+                }
+            }
+        }
+
+        private void DownloadMusic(string id)
+        {
+            var AlbumDetails = GetAlbumDetails.ByEncodedId(id).Result;
+            NumberOfSongs = $"{AlbumDetails.Songs.Number_Of_Songs}";
+            var AlbumTitle = $"{Year} - {Album}";
+            var DownloadPath = DependencyService.Get<IFolderManager>().Music(Artist, AlbumTitle);
+
+
+            var date = Convert.ToUInt32(Year);
+            string[] artists = new string[] { Artist };
+
+            var AlbumPicture = ImageUrl;
+
+            double progress = 0.0;
+
+            if (Quality)
+            {
+                foreach (var Song in AlbumDetails.Songs.Details)
+                {
+                    var SongId = Song.Id;
+                    var Title = Song.Name;
+                    
+                    var SongDetail = GetSongDetails.ById(SongId).Result;
+                    var Url = SongDetail.High_Quality;
+                    var Number = SongDetail.Number;
+
+                    download = new DownloadHelper();
+
+                    if (Url != "")
+                    {
+                        var Downloaded = download.Song(Download.Album, Url, Artist, Album, Title, DownloadPath, "mp3", SongDetail.High_Quality_Size, Number);
+                        var Completed = false;
+
+                        if (!download.IsExisting)
+                        {
+                            Device.BeginInvokeOnMainThread(() => LblDownloadCount.Text = $"{Number}/{NumberOfSongs}");
+                            do
+                            {
+                                if (download.downloadProgress != 0)
+                                {
+                                    progress = (double)download.downloadProgress / 100;
+                                    Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
+                                    Completed = download.downloadCompleted;
+                                }
+                            } while (Completed == false);
+                            TagAudio = new WriteTags(artists, Title, Album, (uint)date, (uint)Number, AlbumPicture, Downloaded);
+                            TagAudio.Save();
+                        }
+                    }
+                    else
+                    {
+                        Url = SongDetail.Normal_Quality;
+
+                        if (Url != "")
+                        {
+                            var Downloaded = download.Song(Download.Album, Url, Artist, Album, Title, DownloadPath, "mp3", SongDetail.Normal_Quality_Size, Number);
+                            var Completed = false;
+
+                            if (!download.IsExisting)
+                            {
+                                Device.BeginInvokeOnMainThread(() => LblDownloadCount.Text = $"{Number}/{NumberOfSongs}");
+                                do
+                                {
+                                    if (download.downloadProgress != 0)
+                                    {
+                                        progress = (double)download.downloadProgress / 100;
+                                        Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
+                                        Completed = download.downloadCompleted;
+                                    }
+                                } while (Completed == false);
+                                TagAudio = new WriteTags(artists, Title, Album, (uint)date, (uint)Number, AlbumPicture, Downloaded);
+                                TagAudio.Save();
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (var Song in AlbumDetails.Songs.Details)
+                {
+
+                    var SongId = Song.Id;
+                    var Title = Song.Name;
+
+                    var SongDetail = GetSongDetails.ById(SongId).Result;
+                    var Number = SongDetail.Number;
+                    var Url = SongDetail.Normal_Quality;
+
+                    if (!download.IsExisting && Url != "")
+                    {
+                        download = new DownloadHelper();
+                        var Downloaded = download.Song(Download.Album, Url, Artist, Album, Title, DownloadPath, "mp3", SongDetail.Normal_Quality_Size, Number);
+
+                        var Completed = false;
+                        Device.BeginInvokeOnMainThread(() => LblDownloadCount.Text = $"{Number}/{NumberOfSongs}");
+                        do
+                        {
+                            if (download.downloadProgress != 0)
+                            {
+                                progress = (double)download.downloadProgress / 100;
+                                Device.BeginInvokeOnMainThread(() => DownloadProgress.Progress = progress);
+                                Completed = download.downloadCompleted;
+                            }
+                        } while (Completed == false);
+                        TagAudio = new WriteTags(artists, Title, Album, (uint)date, (uint)Number, AlbumPicture, Downloaded);
+                        TagAudio.Save();
                     }
                 }
             }

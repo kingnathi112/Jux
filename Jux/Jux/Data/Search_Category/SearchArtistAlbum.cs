@@ -1,6 +1,7 @@
 ﻿using Jux.Helpers;
 using Jux.Interface;
 using Jux.Models.AlbumArtistModel;
+using Jux.Models.NewAlbumsModel;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -35,6 +36,26 @@ namespace Jux.Data.Search_Category
                 {
                     var results = await response.Content.ReadAsStringAsync();
                     resultSearchModels = JsonConvert.DeserializeObject<AlbumAndArtistSearchModel>(results);
+                    return resultSearchModels;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        public static async Task<NewMusic> NewAlbums(int Index = 0, int Limit = 50)
+        {
+            string url = $"https://api-jooxtt.sanook.com/openjoox/v1/newrelease?country=za&lang=en&index={Index}&num={Limit}";
+            var resultSearchModels = new NewMusic();
+
+            using (HttpResponseMessage response = await ApiClient.MobileApiClient.GetAsync(url))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var results = await response.Content.ReadAsStringAsync();
+                    resultSearchModels = JsonConvert.DeserializeObject<NewMusic>(results);
                     return resultSearchModels;
                 }
                 else

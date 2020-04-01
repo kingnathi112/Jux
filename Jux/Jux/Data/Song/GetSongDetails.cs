@@ -20,13 +20,15 @@ namespace Jux.Data.Song
                 if (response.IsSuccessStatusCode)
                 {
                     var returnJson = await response.Content.ReadAsStringAsync();
-                    resultSearchModels = JsonConvert.DeserializeObject<SongInformationModel>(returnJson);
-                    return resultSearchModels;
+                    var resultSearchModel = JsonConvert.DeserializeObject<SongInformationModel>(returnJson);
+                    resultSearchModels = resultSearchModel;
                 }
                 else
                 {
-                    return null;
+                    resultSearchModels = null;
                 }
+
+                return resultSearchModels;
             }
         }
 

@@ -91,6 +91,7 @@
             <x:String x:Key="SongImage">Song</x:String>
             <x:String x:Key="LinkImage">Link</x:String>
             <x:String x:Key="SettingsImage">Settings</x:String>
+            <x:String x:Key="NewAlbumsImage">NewAlbums</x:String>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

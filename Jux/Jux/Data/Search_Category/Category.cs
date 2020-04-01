@@ -9,7 +9,9 @@ namespace Jux.Data.Search_Category
         public enum Search
         {
             Artist,
-            Album
+            Album,
+            Song,
+            NewAlbums
         }
 
         public enum Download

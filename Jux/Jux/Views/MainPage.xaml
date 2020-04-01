@@ -44,9 +44,9 @@
                         </StackLayout>
                         <Frame BackgroundColor="{StaticResource ControlBackground}" CornerRadius="5">
                             <StackLayout
-                                HorizontalOptions="CenterAndExpand"
+                                HorizontalOptions="StartAndExpand"
                                 Orientation="Horizontal"
-                                Spacing="20">
+                                Spacing="10">
                                 <customcontrols:RadioButton
                                     x:Name="RadioSong"
                                     CategoryImage="{StaticResource SongImage}"
@@ -63,6 +63,12 @@
                                     x:Name="RadioArtist"
                                     CategoryImage="{StaticResource ArtistImage}"
                                     CheckedImage="{StaticResource Checked}"
+                                    UnCheckedImage="{StaticResource UnChecked}" />
+                                <customcontrols:RadioButton
+                                    x:Name="RadioNewAlbum"
+                                    CategoryImage="{StaticResource NewAlbumsImage}"
+                                    CheckedImage="{StaticResource Checked}"
+                                    IsVisible="True"
                                     UnCheckedImage="{StaticResource UnChecked}" />
                                 <ImageButton
                                     x:Name="BtnLink"
